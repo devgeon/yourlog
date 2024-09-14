@@ -1,4 +1,4 @@
-package com.devgeon.yourlog.domain;
+package com.devgeon.yourlog.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
