@@ -28,4 +28,9 @@ public class Article extends BaseDateTime {
     @JoinColumn(name = "user_id", nullable = false, updatable = false)
     private User user;
 
+    public void update(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
+
 }

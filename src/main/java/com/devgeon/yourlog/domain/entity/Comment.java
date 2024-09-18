@@ -29,4 +29,8 @@ public class Comment extends BaseDateTime {
     @JoinColumn(name = "user_id", nullable = false, updatable = false)
     private User user;
 
+    public void update(String content) {
+        this.content = content;
+    }
+
 }
