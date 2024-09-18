@@ -1,9 +1,10 @@
 package com.devgeon.yourlog.domain.dto;
 
-import com.devgeon.yourlog.domain.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
 @AllArgsConstructor
 @Getter
 public class UserDeleteRequest {

@@ -1,18 +1,27 @@
 package com.devgeon.yourlog.domain.dto;
 
-import com.devgeon.yourlog.domain.entity.Article;
-import com.devgeon.yourlog.domain.entity.User;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
 @AllArgsConstructor
 @Getter
 public class ArticleWriteRequest {
 
     private String email;
     private String password;
+
+    @NotNull
+    @NotEmpty
+    @NotBlank
     private String title;
+
+    @NotNull
+    @NotEmpty
+    @NotBlank
     private String content;
 }
