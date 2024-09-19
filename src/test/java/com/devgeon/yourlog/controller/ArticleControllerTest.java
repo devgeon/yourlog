@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -52,6 +53,9 @@ class ArticleControllerTest {
     @Autowired
     private ArticleRepository articleRepository;
 
+    @Autowired
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
+
     @BeforeEach
     public void mockMvcSetup() {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
@@ -63,7 +67,7 @@ class ArticleControllerTest {
         final ArticleWriteRequest writeRequest = new ArticleWriteRequest(EMAIL, PASSWORD, TITLE, CONTENT);
         final String requestBody = objectMapper.writeValueAsString(writeRequest);
 
-        userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(PASSWORD).build());
+        userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build());
 
         // when
         ResultActions resultActions = mockMvc.perform(post(BASE_URI)
@@ -90,7 +94,7 @@ class ArticleControllerTest {
         final ArticleWriteRequest writeRequest = new ArticleWriteRequest(EMAIL, PASSWORD, NULL_TITLE, CONTENT);
         final String requestBody = objectMapper.writeValueAsString(writeRequest);
 
-        userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(PASSWORD).build());
+        userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build());
 
         // when
         ResultActions resultActions = mockMvc.perform(post(BASE_URI)
@@ -113,7 +117,7 @@ class ArticleControllerTest {
         final ArticleWriteRequest writeRequest = new ArticleWriteRequest(EMAIL, PASSWORD, EMPTY_TITLE, CONTENT);
         final String requestBody = objectMapper.writeValueAsString(writeRequest);
 
-        userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(PASSWORD).build());
+        userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build());
 
         // when
         ResultActions resultActions = mockMvc.perform(post(BASE_URI)
@@ -136,7 +140,7 @@ class ArticleControllerTest {
         final ArticleWriteRequest writeRequest = new ArticleWriteRequest(EMAIL, PASSWORD, BLANK_TITLE, CONTENT);
         final String requestBody = objectMapper.writeValueAsString(writeRequest);
 
-        userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(PASSWORD).build());
+        userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build());
 
         // when
         ResultActions resultActions = mockMvc.perform(post(BASE_URI)
@@ -159,7 +163,7 @@ class ArticleControllerTest {
         final ArticleEditRequest editRequest = new ArticleEditRequest(EMAIL, PASSWORD, NEW_TITLE, CONTENT);
         final String requestBody = objectMapper.writeValueAsString(editRequest);
 
-        User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(PASSWORD).build());
+        User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build());
         Article oldArticle = articleRepository.save(Article.builder().title(OLD_TITLE).content(CONTENT).user(user).build());
 
         // when
@@ -188,7 +192,7 @@ class ArticleControllerTest {
         final ArticleEditRequest editRequest = new ArticleEditRequest(EMAIL, PASSWORD, TITLE, NEW_CONTENT);
         final String requestBody = objectMapper.writeValueAsString(editRequest);
 
-        User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(PASSWORD).build());
+        User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build());
         Article oldArticle = articleRepository.save(Article.builder().title(TITLE).content(OLD_CONTENT).user(user).build());
 
         // when
@@ -217,7 +221,7 @@ class ArticleControllerTest {
         final ArticleEditRequest editRequest = new ArticleEditRequest(EMAIL, PASSWORD, NULL_TITLE, CONTENT);
         final String requestBody = objectMapper.writeValueAsString(editRequest);
 
-        User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(PASSWORD).build());
+        User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build());
         Article oldArticle = articleRepository.save(Article.builder().title(TITLE).content(CONTENT).user(user).build());
 
         // when
@@ -241,7 +245,7 @@ class ArticleControllerTest {
         final ArticleEditRequest editRequest = new ArticleEditRequest(EMAIL, PASSWORD, EMPTY_TITLE, CONTENT);
         final String requestBody = objectMapper.writeValueAsString(editRequest);
 
-        User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(PASSWORD).build());
+        User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build());
         Article oldArticle = articleRepository.save(Article.builder().title(TITLE).content(CONTENT).user(user).build());
 
         // when
@@ -265,7 +269,7 @@ class ArticleControllerTest {
         final ArticleEditRequest editRequest = new ArticleEditRequest(EMAIL, PASSWORD, BLANK_TITLE, CONTENT);
         final String requestBody = objectMapper.writeValueAsString(editRequest);
 
-        User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(PASSWORD).build());
+        User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build());
         Article oldArticle = articleRepository.save(Article.builder().title(TITLE).content(CONTENT).user(user).build());
 
         // when
@@ -289,7 +293,7 @@ class ArticleControllerTest {
         final ArticleEditRequest editRequest = new ArticleEditRequest(EMAIL, PASSWORD, TITLE, NULL_CONTENT);
         final String requestBody = objectMapper.writeValueAsString(editRequest);
 
-        User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(PASSWORD).build());
+        User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build());
         Article oldArticle = articleRepository.save(Article.builder().title(TITLE).content(CONTENT).user(user).build());
 
         // when
@@ -313,7 +317,7 @@ class ArticleControllerTest {
         final ArticleEditRequest editRequest = new ArticleEditRequest(EMAIL, PASSWORD, TITLE, EMPTY_CONTENT);
         final String requestBody = objectMapper.writeValueAsString(editRequest);
 
-        User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(PASSWORD).build());
+        User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build());
         Article oldArticle = articleRepository.save(Article.builder().title(TITLE).content(CONTENT).user(user).build());
 
         // when
@@ -337,7 +341,7 @@ class ArticleControllerTest {
         final ArticleEditRequest editRequest = new ArticleEditRequest(EMAIL, PASSWORD, TITLE, BLANK_CONTENT);
         final String requestBody = objectMapper.writeValueAsString(editRequest);
 
-        User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(PASSWORD).build());
+        User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build());
         Article oldArticle = articleRepository.save(Article.builder().title(TITLE).content(CONTENT).user(user).build());
 
         // when
@@ -359,7 +363,7 @@ class ArticleControllerTest {
         final ArticleEditRequest deleteRequest = new ArticleEditRequest(EMAIL, PASSWORD, TITLE, CONTENT);
         final String requestBody = objectMapper.writeValueAsString(deleteRequest);
 
-        User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(PASSWORD).build());
+        User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build());
         Article article = articleRepository.save(Article.builder().title(TITLE).content(CONTENT).user(user).build());
 
         // when

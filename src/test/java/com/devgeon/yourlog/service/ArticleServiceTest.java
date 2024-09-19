@@ -13,7 +13,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Collections;
 import java.util.List;
@@ -45,12 +47,17 @@ class ArticleServiceTest {
     @Mock
     private CommentRepository commentRepository;
 
+    @Spy
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
+
     @InjectMocks
     private ArticleService articleService;
 
     @Test
     public void writeSuccess() {
         // given
+        final User USER = new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
+
         when(userRepository.findByEmail(EMAIL)).thenReturn(List.of(USER));
         when(articleRepository.save(any())).thenReturn(new Article(ARTICLE_ID, ARTICLE_TITLE, ARTICLE_CONTENT, USER));
 
@@ -79,7 +86,7 @@ class ArticleServiceTest {
     public void writeFailByWrongPassword() {
         // given
         final String PASSWORD1 = "testPassword1", PASSWORD2 = "testPassword2";
-        final User USER = new User(USER_ID, EMAIL, USERNAME, PASSWORD1);
+        final User USER = new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD1));
 
         when(userRepository.findByEmail(EMAIL)).thenReturn(List.of(USER));
 
@@ -93,6 +100,7 @@ class ArticleServiceTest {
     public void editTitleSuccess() {
         // given
         final String TITLE1 = "testTitle1", TITLE2 = "testTitle2";
+        final User USER = new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
 
         Article article = new Article(ARTICLE_ID, TITLE1, ARTICLE_CONTENT, USER);
 
@@ -113,6 +121,7 @@ class ArticleServiceTest {
     public void editContentSuccess() {
         // given
         final String CONTENT1 = "testContent1", CONTENT2 = "testContent2";
+        final User USER = new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
 
         Article article = new Article(ARTICLE_ID, ARTICLE_TITLE, CONTENT1, USER);
 
@@ -144,7 +153,7 @@ class ArticleServiceTest {
     public void editFailByWrongPassword() {
         // given
         final String PASSWORD1 = "testPassword1", PASSWORD2 = "testPassword2";
-        final User USER = new User(USER_ID, EMAIL, USERNAME, PASSWORD1);
+        final User USER = new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD1));
 
         when(userRepository.findByEmail(EMAIL)).thenReturn(List.of(USER));
 
@@ -157,6 +166,8 @@ class ArticleServiceTest {
     @Test
     public void deleteSuccess() {
         // given
+        final User USER = new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
+
         when(userRepository.findByEmail(EMAIL)).thenReturn(List.of(USER));
         when(articleRepository.findById(ARTICLE_ID)).thenReturn(Optional.of(ARTICLE));
         when(commentRepository.deleteByArticle(ARTICLE)).thenReturn(List.of(COMMENT));
@@ -187,7 +198,7 @@ class ArticleServiceTest {
     public void deleteFailByWrongPassword() {
         // given
         final String PASSWORD1 = "testPassword1", PASSWORD2 = "testPassword2";
-        final User USER = new User(USER_ID, EMAIL, USERNAME, PASSWORD1);
+        final User USER = new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD1));
 
         when(userRepository.findByEmail(EMAIL)).thenReturn(List.of(USER));
 

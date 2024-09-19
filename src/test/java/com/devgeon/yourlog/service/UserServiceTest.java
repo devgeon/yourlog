@@ -10,11 +10,9 @@ import com.devgeon.yourlog.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Collections;
 import java.util.List;
@@ -35,6 +33,9 @@ class UserServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Spy
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
+
     @InjectMocks
     private UserService userService;
 
@@ -44,7 +45,8 @@ class UserServiceTest {
     @Test
     public void joinSuccess() {
         // given
-        when(userRepository.save(any())).thenReturn(new User(ID, EMAIL, USERNAME, PASSWORD));
+        final String encodePassword = bCryptPasswordEncoder.encode(PASSWORD);
+        when(userRepository.save(any())).thenReturn(new User(ID, EMAIL, USERNAME, encodePassword));
 
         // when
         UserDto userDto = userService.join(new UserJoinRequest(EMAIL, USERNAME, PASSWORD));
@@ -57,7 +59,7 @@ class UserServiceTest {
     @Test
     public void deleteSuccess() {
         // given
-        User user = new User(ID, EMAIL, USERNAME, PASSWORD);
+        User user = new User(ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
 
         when(userRepository.findByEmail(any())).thenReturn(List.of(user));
 
@@ -68,7 +70,6 @@ class UserServiceTest {
         verify(userRepository).deleteById(ID);
 
         assertThat(deleteResponse.getEmail()).isEqualTo(EMAIL);
-        // TODO: Rewrite to compare with encrypted password
         assertThat(deleteResponse.getPassword()).isEqualTo(PASSWORD);
     }
 
@@ -87,7 +88,7 @@ class UserServiceTest {
     public void deleteFailByWrongPassword() {
         // given
         final String PASSWORD1 = "testPassword1", PASSWORD2 = "testPassword2";
-        final User USER = new User(ID, EMAIL, USERNAME, PASSWORD1);
+        final User USER = new User(ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD1));
 
         when(userRepository.findByEmail(EMAIL)).thenReturn(List.of(USER));
 
@@ -100,15 +101,16 @@ class UserServiceTest {
     @Test
     public void verifyPasswordEncrypted() {
         // given
-        when(userRepository.save(any())).thenReturn(new User(ID, EMAIL, USERNAME, PASSWORD));
+        final String encodePasswordOuter = bCryptPasswordEncoder.encode(PASSWORD);
+        when(userRepository.save(any())).thenReturn(new User(ID, EMAIL, USERNAME, encodePasswordOuter));
 
         // when
         userService.join(new UserJoinRequest(EMAIL, USERNAME, PASSWORD));
 
         // then
         verify(userRepository).save(userCaptor.capture());
-        // TODO: Rewrite to compare with encrypted password
-        assertThat(userCaptor.getValue().getPassword()).isNotEqualTo(PASSWORD);
+        String encodePasswordInner = userCaptor.getValue().getPassword();
+        assertThat(bCryptPasswordEncoder.matches(PASSWORD, encodePasswordInner)).isTrue();
     }
 
 }

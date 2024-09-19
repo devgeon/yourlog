@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -44,6 +45,9 @@ class UserControllerTest {
     private WebApplicationContext context;
 
     @Autowired
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    @Autowired
     private UserRepository userRepository;
 
     @BeforeEach
@@ -70,8 +74,7 @@ class UserControllerTest {
         assertThat(users.size()).isEqualTo(1);
         assertThat(users.getFirst().getEmail()).isEqualTo(EMAIL);
         assertThat(users.getFirst().getUsername()).isEqualTo(USERNAME);
-        // TODO: Rewrite to compare with encrypted password
-        assertThat(users.getFirst().getPassword()).isNotEqualTo(PASSWORD);
+        assertThat(bCryptPasswordEncoder.matches(PASSWORD, users.getFirst().getPassword())).isTrue();
     }
 
     @Test
@@ -80,7 +83,7 @@ class UserControllerTest {
         final UserDeleteRequest deleteRequest = new UserDeleteRequest(EMAIL, PASSWORD);
         final String requestBody = objectMapper.writeValueAsString(deleteRequest);
 
-        userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(PASSWORD).build());
+        userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build());
 
         // when
         ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders.delete(BASE_URI)

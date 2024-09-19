@@ -13,7 +13,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Collections;
 import java.util.List;
@@ -45,12 +47,17 @@ class CommentServiceTest {
     @Mock
     private CommentRepository commentRepository;
 
+    @Spy
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
+
     @InjectMocks
     private CommentService commentService;
 
     @Test
     public void writeSuccess() {
         // given
+        final User USER = new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
+
         when(userRepository.findByEmail(EMAIL)).thenReturn(List.of(USER));
         when(articleRepository.findById(ARTICLE_ID)).thenReturn(Optional.of(ARTICLE));
         when(commentRepository.save(any())).thenReturn(COMMENT);
@@ -79,7 +86,7 @@ class CommentServiceTest {
     public void writeFailByWrongPassword() {
         // given
         final String PASSWORD1 = "testPassword1", PASSWORD2 = "testPassword2";
-        final User USER = new User(USER_ID, EMAIL, USERNAME, PASSWORD1);
+        final User USER = new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD1));
 
         when(userRepository.findByEmail(EMAIL)).thenReturn(List.of(USER));
 
@@ -93,6 +100,7 @@ class CommentServiceTest {
     public void editSuccess() {
         // given
         final String COMMENT1_CONTENT = "testComment1Content", COMMENT2_CONTENT = "testComment2Content";
+        final User USER = new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
 
         Comment comment = new Comment(COMMENT_ID, COMMENT1_CONTENT, ARTICLE, USER);
 
@@ -124,7 +132,7 @@ class CommentServiceTest {
     public void editFailByWrongPassword() {
         // given
         final String PASSWORD1 = "testPassword1", PASSWORD2 = "testPassword2";
-        final User USER = new User(USER_ID, EMAIL, USERNAME, PASSWORD1);
+        final User USER = new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD1));
 
         when(userRepository.findByEmail(EMAIL)).thenReturn(List.of(USER));
 
@@ -137,6 +145,8 @@ class CommentServiceTest {
     @Test
     public void deleteSuccess() {
         // given
+        final User USER = new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
+
         when(userRepository.findByEmail(EMAIL)).thenReturn(List.of(USER));
 
         // when
@@ -164,7 +174,7 @@ class CommentServiceTest {
     public void deleteFailByWrongPassword() {
         // given
         final String PASSWORD1 = "testPassword1", PASSWORD2 = "testPassword2";
-        final User USER = new User(USER_ID, EMAIL, USERNAME, PASSWORD1);
+        final User USER = new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD1));
 
         when(userRepository.findByEmail(EMAIL)).thenReturn(List.of(USER));
 

@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -57,6 +58,8 @@ class CommentControllerTest {
     private ArticleRepository articleRepository;
     @Autowired
     private CommentRepository commentRepository;
+    @Autowired
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @BeforeEach
     public void mockMvcSetup() {
@@ -66,7 +69,7 @@ class CommentControllerTest {
     @Test
     public void writeSuccess() throws Exception {
         // given
-        final User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(PASSWORD).build());
+        final User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build());
         final Article article = articleRepository.save(Article.builder().title(TITLE).content(ARTICLE_CONTENT).user(user).build());
 
         final CommentWriteRequest writeRequest = new CommentWriteRequest(EMAIL, PASSWORD, COMMENT_CONTENT);
@@ -94,7 +97,7 @@ class CommentControllerTest {
         // given
         final String NULL_CONTENT = null;
 
-        final User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(PASSWORD).build());
+        final User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build());
         final Article article = articleRepository.save(Article.builder().title(TITLE).content(ARTICLE_CONTENT).user(user).build());
 
         final CommentWriteRequest writeRequest = new CommentWriteRequest(EMAIL, PASSWORD, NULL_CONTENT);
@@ -118,7 +121,7 @@ class CommentControllerTest {
         // given
         final String EMPTY_CONTENT = "";
 
-        final User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(PASSWORD).build());
+        final User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build());
         final Article article = articleRepository.save(Article.builder().title(TITLE).content(ARTICLE_CONTENT).user(user).build());
 
         final CommentWriteRequest writeRequest = new CommentWriteRequest(EMAIL, PASSWORD, EMPTY_CONTENT);
@@ -142,7 +145,7 @@ class CommentControllerTest {
         // given
         final String EMPTY_CONTENT = " ";
 
-        final User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(PASSWORD).build());
+        final User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build());
         final Article article = articleRepository.save(Article.builder().title(TITLE).content(ARTICLE_CONTENT).user(user).build());
 
         final CommentWriteRequest writeRequest = new CommentWriteRequest(EMAIL, PASSWORD, EMPTY_CONTENT);
@@ -166,7 +169,7 @@ class CommentControllerTest {
         // given
         final String OLD_COMMENT_CONTENT = "testOldCommentContent", NEW_COMMENT_CONTENT = "testNewCommentContent";
 
-        final User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(PASSWORD).build());
+        final User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build());
         final Article article = articleRepository.save(Article.builder().title(TITLE).content(ARTICLE_CONTENT).user(user).build());
         final Comment oldComment = commentRepository.save(Comment.builder().content(OLD_COMMENT_CONTENT).article(article).user(user).build());
 
@@ -196,7 +199,7 @@ class CommentControllerTest {
         // given
         final String NULL_CONTENT = null;
 
-        final User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(PASSWORD).build());
+        final User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build());
         final Article article = articleRepository.save(Article.builder().title(TITLE).content(ARTICLE_CONTENT).user(user).build());
         final Comment oldComment = commentRepository.save(Comment.builder().content(COMMENT_CONTENT).article(article).user(user).build());
 
@@ -221,7 +224,7 @@ class CommentControllerTest {
         // given
         final String EMPTY_CONTENT = "";
 
-        final User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(PASSWORD).build());
+        final User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build());
         final Article article = articleRepository.save(Article.builder().title(TITLE).content(ARTICLE_CONTENT).user(user).build());
         final Comment oldComment = commentRepository.save(Comment.builder().content(COMMENT_CONTENT).article(article).user(user).build());
 
@@ -246,7 +249,7 @@ class CommentControllerTest {
         // given
         final String BLANK_CONTENT = " ";
 
-        final User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(PASSWORD).build());
+        final User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build());
         final Article article = articleRepository.save(Article.builder().title(TITLE).content(ARTICLE_CONTENT).user(user).build());
         final Comment oldComment = commentRepository.save(Comment.builder().content(COMMENT_CONTENT).article(article).user(user).build());
 
@@ -269,7 +272,7 @@ class CommentControllerTest {
     @Test
     public void deleteSuccess() throws Exception {
         // given
-        final User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(PASSWORD).build());
+        final User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build());
         final Article article = articleRepository.save(Article.builder().title(TITLE).content(ARTICLE_CONTENT).user(user).build());
         final Comment comment = commentRepository.save(Comment.builder().content(COMMENT_CONTENT).article(article).user(user).build());
 

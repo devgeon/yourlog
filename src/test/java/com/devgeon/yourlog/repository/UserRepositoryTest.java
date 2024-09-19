@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,20 +22,23 @@ class UserRepositoryTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
+
     @Test
     void userSaveSuccess() {
         // given
 
         // when
-        User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(PASSWORD).build());
+        User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build());
 
         // then
         assertThat(user.getId()).isNotNull();
         assertThat(user.getEmail()).isEqualTo(EMAIL);
         assertThat(user.getUsername()).isEqualTo(USERNAME);
-        assertThat(user.getPassword()).isEqualTo(PASSWORD);
         assertThat(user.getCreatedAt()).isNotNull();
         assertThat(user.getUpdatedAt()).isNotNull();
+        assertThat(bCryptPasswordEncoder.matches(PASSWORD, user.getPassword())).isTrue();
     }
 
     @Test
@@ -42,11 +46,11 @@ class UserRepositoryTest {
         // given
 
         // when
-        userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(PASSWORD).build());
+        userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build());
 
         // then
         assertThrows(DataIntegrityViolationException.class, () ->
-                userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(PASSWORD).build()));
+                userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build()));
     }
 
 }

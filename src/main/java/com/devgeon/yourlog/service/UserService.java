@@ -9,6 +9,7 @@ import com.devgeon.yourlog.exception.UserAuthenticationException;
 import com.devgeon.yourlog.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,14 +22,14 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     public UserDto join(UserJoinRequest joinRequest) {
 
         User user = userRepository.save(User.builder()
                 .email(joinRequest.getEmail())
                 .username(joinRequest.getUsername())
-                // TODO: encrypt password
-                .password(joinRequest.getPassword())
+                .password(bCryptPasswordEncoder.encode(joinRequest.getPassword()))
                 .build());
 
         return new UserDto(user.getEmail(), user.getUsername());
@@ -46,8 +47,7 @@ public class UserService {
     private User getUserOrThrow(String email, String password) {
 
         List<User> userList = userRepository.findByEmail(email);
-        // TODO: encrypt password
-        if (userList.isEmpty() || !userList.getFirst().getPassword().equals(password)) {
+        if (userList.isEmpty() || !bCryptPasswordEncoder.matches(password, userList.getFirst().getPassword())) {
             throw new UserAuthenticationException();
         }
 
