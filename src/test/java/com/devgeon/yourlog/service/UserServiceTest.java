@@ -6,6 +6,8 @@ import com.devgeon.yourlog.domain.dto.UserDto;
 import com.devgeon.yourlog.domain.dto.UserJoinRequest;
 import com.devgeon.yourlog.domain.entity.User;
 import com.devgeon.yourlog.exception.UserAuthenticationException;
+import com.devgeon.yourlog.repository.ArticleRepository;
+import com.devgeon.yourlog.repository.CommentRepository;
 import com.devgeon.yourlog.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -32,6 +34,12 @@ class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private ArticleRepository articleRepository;
+
+    @Mock
+    private CommentRepository commentRepository;
 
     @Spy
     private BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -67,6 +75,8 @@ class UserServiceTest {
         UserDeleteResponse deleteResponse = userService.delete(new UserDeleteRequest(EMAIL, PASSWORD));
 
         // then
+        verify(commentRepository).deleteByUser(user);
+        verify(articleRepository).deleteByUser(user);
         verify(userRepository).deleteById(ID);
 
         assertThat(deleteResponse.getEmail()).isEqualTo(EMAIL);

@@ -170,7 +170,6 @@ class ArticleServiceTest {
 
         when(userRepository.findByEmail(EMAIL)).thenReturn(List.of(USER));
         when(articleRepository.findById(ARTICLE_ID)).thenReturn(Optional.of(ARTICLE));
-        when(commentRepository.deleteByArticle(ARTICLE)).thenReturn(List.of(COMMENT));
 
         // when
         ArticleDeleteResponse deleteResponse = articleService.delete(ARTICLE_ID, new ArticleDeleteRequest(EMAIL, PASSWORD));

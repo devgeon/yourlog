@@ -6,6 +6,8 @@ import com.devgeon.yourlog.domain.dto.UserDto;
 import com.devgeon.yourlog.domain.dto.UserJoinRequest;
 import com.devgeon.yourlog.domain.entity.User;
 import com.devgeon.yourlog.exception.UserAuthenticationException;
+import com.devgeon.yourlog.repository.ArticleRepository;
+import com.devgeon.yourlog.repository.CommentRepository;
 import com.devgeon.yourlog.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +24,8 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final ArticleRepository articleRepository;
+    private final CommentRepository commentRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     public UserDto join(UserJoinRequest joinRequest) {
@@ -39,6 +43,8 @@ public class UserService {
 
         User user = getUserOrThrow(deleteRequest.getEmail(), deleteRequest.getPassword());
 
+        commentRepository.deleteByUser(user);
+        articleRepository.deleteByUser(user);
         userRepository.deleteById(user.getId());
 
         return new UserDeleteResponse(deleteRequest.getEmail(), deleteRequest.getPassword());
