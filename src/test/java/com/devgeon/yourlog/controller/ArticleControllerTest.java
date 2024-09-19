@@ -89,9 +89,7 @@ class ArticleControllerTest {
     @Test
     public void writeFailByNullTitle() throws Exception {
         // given
-        final String NULL_TITLE = null;
-
-        final ArticleWriteRequest writeRequest = new ArticleWriteRequest(EMAIL, PASSWORD, NULL_TITLE, CONTENT);
+        final ArticleWriteRequest writeRequest = new ArticleWriteRequest(EMAIL, PASSWORD, null, CONTENT);
         final String requestBody = objectMapper.writeValueAsString(writeRequest);
 
         userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build());
@@ -216,9 +214,7 @@ class ArticleControllerTest {
     @Test
     public void editFailByNullTitle() throws Exception {
         // given
-        final String NULL_TITLE = null;
-
-        final ArticleEditRequest editRequest = new ArticleEditRequest(EMAIL, PASSWORD, NULL_TITLE, CONTENT);
+        final ArticleEditRequest editRequest = new ArticleEditRequest(EMAIL, PASSWORD, null, CONTENT);
         final String requestBody = objectMapper.writeValueAsString(editRequest);
 
         User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build());
@@ -288,9 +284,7 @@ class ArticleControllerTest {
     @Test
     public void editFailByNullContent() throws Exception {
         // given
-        final String NULL_CONTENT = null;
-
-        final ArticleEditRequest editRequest = new ArticleEditRequest(EMAIL, PASSWORD, TITLE, NULL_CONTENT);
+        final ArticleEditRequest editRequest = new ArticleEditRequest(EMAIL, PASSWORD, TITLE, null);
         final String requestBody = objectMapper.writeValueAsString(editRequest);
 
         User user = userRepository.save(User.builder().email(EMAIL).username(USERNAME).password(bCryptPasswordEncoder.encode(PASSWORD)).build());
