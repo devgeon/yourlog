@@ -164,6 +164,21 @@ class ArticleServiceTest {
     }
 
     @Test
+    public void editFailByWrongAccount() {
+        // given
+        final String OTHER_EMAIL = "other@test.com";
+        final User OTHER_USER = new User(USER_ID + 1, OTHER_EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
+
+        when(userRepository.findByEmail(OTHER_EMAIL)).thenReturn(List.of(OTHER_USER));
+        when(articleRepository.findById(ARTICLE_ID)).thenReturn(Optional.of(ARTICLE));
+
+        // when
+        assertThrows(UserAuthenticationException.class, () -> articleService.edit(ARTICLE_ID, new ArticleEditRequest(OTHER_EMAIL, PASSWORD, ARTICLE_TITLE, ARTICLE_CONTENT)));
+
+        // then
+    }
+
+    @Test
     public void deleteSuccess() {
         // given
         final User USER = new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
@@ -203,6 +218,21 @@ class ArticleServiceTest {
 
         // when
         assertThrows(UserAuthenticationException.class, () -> articleService.delete(ARTICLE_ID, new ArticleDeleteRequest(EMAIL, PASSWORD2)));
+
+        // then
+    }
+
+    @Test
+    public void deleteFailByWrongAccount() {
+        // given
+        final String OTHER_EMAIL = "other@test.com";
+        final User OTHER_USER = new User(USER_ID + 1, OTHER_EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
+
+        when(userRepository.findByEmail(OTHER_EMAIL)).thenReturn(List.of(OTHER_USER));
+        when(articleRepository.findById(ARTICLE_ID)).thenReturn(Optional.of(ARTICLE));
+
+        // when
+        assertThrows(UserAuthenticationException.class, () -> articleService.delete(ARTICLE_ID, new ArticleDeleteRequest(OTHER_EMAIL, PASSWORD)));
 
         // then
     }

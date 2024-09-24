@@ -143,11 +143,27 @@ class CommentServiceTest {
     }
 
     @Test
+    public void editFailByWrongAccount() {
+        // given
+        final String OTHER_EMAIL = "other@test.com";
+        final User OTHER_USER = new User(USER_ID + 1, OTHER_EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
+
+        when(userRepository.findByEmail(OTHER_EMAIL)).thenReturn(List.of(OTHER_USER));
+        when(commentRepository.findById(COMMENT_ID)).thenReturn(Optional.of(COMMENT));
+
+        // when
+        assertThrows(UserAuthenticationException.class, () -> commentService.edit(COMMENT_ID, new CommentEditRequest(OTHER_EMAIL, PASSWORD, COMMENT_CONTENT)));
+
+        // then
+    }
+
+    @Test
     public void deleteSuccess() {
         // given
         final User USER = new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
 
         when(userRepository.findByEmail(EMAIL)).thenReturn(List.of(USER));
+        when(commentRepository.findById(COMMENT_ID)).thenReturn(Optional.of(COMMENT));
 
         // when
         CommentDeleteResponse deleteResponse = commentService.delete(COMMENT_ID, new CommentDeleteRequest(EMAIL, PASSWORD));
@@ -180,6 +196,21 @@ class CommentServiceTest {
 
         // when
         assertThrows(UserAuthenticationException.class, () -> commentService.delete(COMMENT_ID, new CommentDeleteRequest(EMAIL, PASSWORD2)));
+
+        // then
+    }
+
+    @Test
+    public void deleteFailByWrongAccount() {
+        // given
+        final String OTHER_EMAIL = "other@test.com";
+        final User OTHER_USER = new User(USER_ID + 1, OTHER_EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
+
+        when(userRepository.findByEmail(OTHER_EMAIL)).thenReturn(List.of(OTHER_USER));
+        when(commentRepository.findById(COMMENT_ID)).thenReturn(Optional.of(COMMENT));
+
+        // when
+        assertThrows(UserAuthenticationException.class, () -> commentService.delete(COMMENT_ID, new CommentDeleteRequest(OTHER_EMAIL, PASSWORD)));
 
         // then
     }
