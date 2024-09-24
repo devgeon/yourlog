@@ -30,7 +30,7 @@ import static org.mockito.Mockito.when;
 class UserServiceTest {
 
     final Long ID = 1L;
-    final String EMAIL = "test@test.com", USERNAME = "testUser", PASSWORD = "testPassword";
+    final String EMAIL = "test@test.com", USERNAME = "testUser", PASSWORD = "testPassword", WRONG_PASSWORD = "wrongPassword";
 
     @Mock
     private UserRepository userRepository;
@@ -50,11 +50,16 @@ class UserServiceTest {
     @Captor
     private ArgumentCaptor<User> userCaptor;
 
+    private User getTestUser() {
+        return new User(ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
+    }
+
     @Test
     public void joinSuccess() {
         // given
-        final String encodePassword = bCryptPasswordEncoder.encode(PASSWORD);
-        when(userRepository.save(any())).thenReturn(new User(ID, EMAIL, USERNAME, encodePassword));
+        final User USER = getTestUser();
+
+        when(userRepository.save(any())).thenReturn(USER);
 
         // when
         UserDto userDto = userService.join(new UserJoinRequest(EMAIL, USERNAME, PASSWORD));
@@ -67,16 +72,16 @@ class UserServiceTest {
     @Test
     public void deleteSuccess() {
         // given
-        User user = new User(ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
+        final User USER = getTestUser();
 
-        when(userRepository.findByEmail(any())).thenReturn(List.of(user));
+        when(userRepository.findByEmail(any())).thenReturn(List.of(USER));
 
         // when
         UserDeleteResponse deleteResponse = userService.delete(new UserDeleteRequest(EMAIL, PASSWORD));
 
         // then
-        verify(commentRepository).deleteByUser(user);
-        verify(articleRepository).deleteByUser(user);
+        verify(commentRepository).deleteByUser(USER);
+        verify(articleRepository).deleteByUser(USER);
         verify(userRepository).deleteById(ID);
 
         assertThat(deleteResponse.getEmail()).isEqualTo(EMAIL);
@@ -97,13 +102,12 @@ class UserServiceTest {
     @Test
     public void deleteFailByWrongPassword() {
         // given
-        final String PASSWORD1 = "testPassword1", PASSWORD2 = "testPassword2";
-        final User USER = new User(ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD1));
+        final User USER = getTestUser();
 
         when(userRepository.findByEmail(EMAIL)).thenReturn(List.of(USER));
 
         // when
-        assertThrows(UserAuthenticationException.class, () -> userService.delete(new UserDeleteRequest(EMAIL, PASSWORD2)));
+        assertThrows(UserAuthenticationException.class, () -> userService.delete(new UserDeleteRequest(EMAIL, WRONG_PASSWORD)));
 
         // then
     }
@@ -111,16 +115,17 @@ class UserServiceTest {
     @Test
     public void verifyPasswordEncrypted() {
         // given
-        final String encodePasswordOuter = bCryptPasswordEncoder.encode(PASSWORD);
-        when(userRepository.save(any())).thenReturn(new User(ID, EMAIL, USERNAME, encodePasswordOuter));
+        final User USER = getTestUser();
+
+        when(userRepository.save(any())).thenReturn(USER);
 
         // when
         userService.join(new UserJoinRequest(EMAIL, USERNAME, PASSWORD));
 
         // then
         verify(userRepository).save(userCaptor.capture());
-        String encodePasswordInner = userCaptor.getValue().getPassword();
-        assertThat(bCryptPasswordEncoder.matches(PASSWORD, encodePasswordInner)).isTrue();
+        String encodePassword = userCaptor.getValue().getPassword();
+        assertThat(bCryptPasswordEncoder.matches(PASSWORD, encodePassword)).isTrue();
     }
 
 }

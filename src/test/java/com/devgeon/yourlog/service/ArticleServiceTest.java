@@ -2,7 +2,6 @@ package com.devgeon.yourlog.service;
 
 import com.devgeon.yourlog.domain.dto.*;
 import com.devgeon.yourlog.domain.entity.Article;
-import com.devgeon.yourlog.domain.entity.Comment;
 import com.devgeon.yourlog.domain.entity.User;
 import com.devgeon.yourlog.exception.UserAuthenticationException;
 import com.devgeon.yourlog.repository.ArticleRepository;
@@ -33,10 +32,11 @@ class ArticleServiceTest {
 
     final Long USER_ID = 1L, ARTICLE_ID = 1L, COMMENT_ID = 1L;
     final String EMAIL = "test@test.com", USERNAME = "testUsername", PASSWORD = "testPassword",
-            ARTICLE_TITLE = "testTitle", ARTICLE_CONTENT = "testArticleContent", COMMENT_CONTENT = "testCommentContent";
+            ARTICLE_TITLE = "testArticleTitle", ARTICLE_CONTENT = "testArticleContent", COMMENT_CONTENT = "testCommentContent";
+    final String OTHER_EMAIL = "other@test.com", WRONG_PASSWORD = "wrongPassword", NEW_ARTICLE_TITLE = "newArticleTitle", NEW_ARTICLE_CONTENT = "newArticleContent";
+
     final User USER = new User(USER_ID, EMAIL, USERNAME, PASSWORD);
     final Article ARTICLE = new Article(ARTICLE_ID, ARTICLE_TITLE, ARTICLE_CONTENT, USER);
-    final Comment COMMENT = new Comment(COMMENT_ID, COMMENT_CONTENT, ARTICLE, USER);
 
     @Mock
     private UserRepository userRepository;
@@ -53,10 +53,18 @@ class ArticleServiceTest {
     @InjectMocks
     private ArticleService articleService;
 
+    private User getTestUser() {
+        return new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
+    }
+
+    private User getOtherUser() {
+        return new User(USER_ID + 1, OTHER_EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
+    }
+
     @Test
     public void writeSuccess() {
         // given
-        final User USER = new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
+        final User USER = getTestUser();
 
         when(userRepository.findByEmail(EMAIL)).thenReturn(List.of(USER));
         when(articleRepository.save(any())).thenReturn(new Article(ARTICLE_ID, ARTICLE_TITLE, ARTICLE_CONTENT, USER));
@@ -85,13 +93,12 @@ class ArticleServiceTest {
     @Test
     public void writeFailByWrongPassword() {
         // given
-        final String PASSWORD1 = "testPassword1", PASSWORD2 = "testPassword2";
-        final User USER = new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD1));
+        final User USER = getTestUser();
 
         when(userRepository.findByEmail(EMAIL)).thenReturn(List.of(USER));
 
         // when
-        assertThrows(UserAuthenticationException.class, () -> articleService.write(new ArticleWriteRequest(EMAIL, PASSWORD2, ARTICLE_TITLE, ARTICLE_CONTENT)));
+        assertThrows(UserAuthenticationException.class, () -> articleService.write(new ArticleWriteRequest(EMAIL, WRONG_PASSWORD, ARTICLE_TITLE, ARTICLE_CONTENT)));
 
         // then
     }
@@ -99,20 +106,19 @@ class ArticleServiceTest {
     @Test
     public void editTitleSuccess() {
         // given
-        final String TITLE1 = "testTitle1", TITLE2 = "testTitle2";
-        final User USER = new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
+        final User USER = getTestUser();
 
-        Article article = new Article(ARTICLE_ID, TITLE1, ARTICLE_CONTENT, USER);
+        Article article = new Article(ARTICLE_ID, ARTICLE_TITLE, ARTICLE_CONTENT, USER);
 
         when(userRepository.findByEmail(EMAIL)).thenReturn(List.of(USER));
         when(articleRepository.findById(ARTICLE_ID)).thenReturn(Optional.of(article));
 
         // when
-        articleService.edit(ARTICLE_ID, new ArticleEditRequest(EMAIL, PASSWORD, TITLE2, ARTICLE_CONTENT));
+        articleService.edit(ARTICLE_ID, new ArticleEditRequest(EMAIL, PASSWORD, NEW_ARTICLE_TITLE, ARTICLE_CONTENT));
 
         // then
         assertThat(article.getId()).isEqualTo(ARTICLE_ID);
-        assertThat(article.getTitle()).isEqualTo(TITLE2);
+        assertThat(article.getTitle()).isEqualTo(NEW_ARTICLE_TITLE);
         assertThat(article.getContent()).isEqualTo(ARTICLE_CONTENT);
         assertThat(article.getUser()).isEqualTo(USER);
     }
@@ -120,21 +126,20 @@ class ArticleServiceTest {
     @Test
     public void editContentSuccess() {
         // given
-        final String CONTENT1 = "testContent1", CONTENT2 = "testContent2";
-        final User USER = new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
+        final User USER = getTestUser();
 
-        Article article = new Article(ARTICLE_ID, ARTICLE_TITLE, CONTENT1, USER);
+        Article article = new Article(ARTICLE_ID, ARTICLE_TITLE, ARTICLE_CONTENT, USER);
 
         when(userRepository.findByEmail(EMAIL)).thenReturn(List.of(USER));
         when(articleRepository.findById(ARTICLE_ID)).thenReturn(Optional.of(article));
 
         // when
-        articleService.edit(ARTICLE_ID, new ArticleEditRequest(EMAIL, PASSWORD, ARTICLE_TITLE, CONTENT2));
+        articleService.edit(ARTICLE_ID, new ArticleEditRequest(EMAIL, PASSWORD, ARTICLE_TITLE, NEW_ARTICLE_CONTENT));
 
         // then
         assertThat(article.getId()).isEqualTo(ARTICLE_ID);
         assertThat(article.getTitle()).isEqualTo(ARTICLE_TITLE);
-        assertThat(article.getContent()).isEqualTo(CONTENT2);
+        assertThat(article.getContent()).isEqualTo(NEW_ARTICLE_CONTENT);
         assertThat(article.getUser()).isEqualTo(USER);
     }
 
@@ -152,13 +157,12 @@ class ArticleServiceTest {
     @Test
     public void editFailByWrongPassword() {
         // given
-        final String PASSWORD1 = "testPassword1", PASSWORD2 = "testPassword2";
-        final User USER = new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD1));
+        final User USER = getTestUser();
 
         when(userRepository.findByEmail(EMAIL)).thenReturn(List.of(USER));
 
         // when
-        assertThrows(UserAuthenticationException.class, () -> articleService.edit(ARTICLE_ID, new ArticleEditRequest(EMAIL, PASSWORD2, ARTICLE_TITLE, ARTICLE_CONTENT)));
+        assertThrows(UserAuthenticationException.class, () -> articleService.edit(ARTICLE_ID, new ArticleEditRequest(EMAIL, WRONG_PASSWORD, ARTICLE_TITLE, ARTICLE_CONTENT)));
 
         // then
     }
@@ -166,8 +170,7 @@ class ArticleServiceTest {
     @Test
     public void editFailByWrongAccount() {
         // given
-        final String OTHER_EMAIL = "other@test.com";
-        final User OTHER_USER = new User(USER_ID + 1, OTHER_EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
+        final User OTHER_USER = getOtherUser();
 
         when(userRepository.findByEmail(OTHER_EMAIL)).thenReturn(List.of(OTHER_USER));
         when(articleRepository.findById(ARTICLE_ID)).thenReturn(Optional.of(ARTICLE));
@@ -181,7 +184,7 @@ class ArticleServiceTest {
     @Test
     public void deleteSuccess() {
         // given
-        final User USER = new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
+        final User USER = getTestUser();
 
         when(userRepository.findByEmail(EMAIL)).thenReturn(List.of(USER));
         when(articleRepository.findById(ARTICLE_ID)).thenReturn(Optional.of(ARTICLE));
@@ -211,13 +214,12 @@ class ArticleServiceTest {
     @Test
     public void deleteFailByWrongPassword() {
         // given
-        final String PASSWORD1 = "testPassword1", PASSWORD2 = "testPassword2";
-        final User USER = new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD1));
+        final User USER = getTestUser();
 
         when(userRepository.findByEmail(EMAIL)).thenReturn(List.of(USER));
 
         // when
-        assertThrows(UserAuthenticationException.class, () -> articleService.delete(ARTICLE_ID, new ArticleDeleteRequest(EMAIL, PASSWORD2)));
+        assertThrows(UserAuthenticationException.class, () -> articleService.delete(ARTICLE_ID, new ArticleDeleteRequest(EMAIL, WRONG_PASSWORD)));
 
         // then
     }
@@ -225,8 +227,7 @@ class ArticleServiceTest {
     @Test
     public void deleteFailByWrongAccount() {
         // given
-        final String OTHER_EMAIL = "other@test.com";
-        final User OTHER_USER = new User(USER_ID + 1, OTHER_EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
+        final User OTHER_USER = getOtherUser();
 
         when(userRepository.findByEmail(OTHER_EMAIL)).thenReturn(List.of(OTHER_USER));
         when(articleRepository.findById(ARTICLE_ID)).thenReturn(Optional.of(ARTICLE));

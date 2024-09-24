@@ -33,7 +33,9 @@ class CommentServiceTest {
 
     final Long USER_ID = 1L, ARTICLE_ID = 1L, COMMENT_ID = 1L;
     final String EMAIL = "test@test.com", USERNAME = "testUsername", PASSWORD = "testPassword",
-            ARTICLE_TITLE = "testTitle", ARTICLE_CONTENT = "testArticleContent", COMMENT_CONTENT = "testCommentContent";
+            ARTICLE_TITLE = "testArticleTitle", ARTICLE_CONTENT = "testArticleContent", COMMENT_CONTENT = "testCommentContent";
+    final String OTHER_EMAIL = "other@test.com", WRONG_PASSWORD = "wrongPassword", NEW_COMMENT_CONTENT = "newCommentContent";
+
     final User USER = new User(USER_ID, EMAIL, USERNAME, PASSWORD);
     final Article ARTICLE = new Article(ARTICLE_ID, ARTICLE_TITLE, ARTICLE_CONTENT, USER);
     final Comment COMMENT = new Comment(COMMENT_ID, COMMENT_CONTENT, ARTICLE, USER);
@@ -53,10 +55,18 @@ class CommentServiceTest {
     @InjectMocks
     private CommentService commentService;
 
+    private User getTestUser() {
+        return new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
+    }
+
+    private User getOtherUser() {
+        return new User(USER_ID + 1, OTHER_EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
+    }
+
     @Test
     public void writeSuccess() {
         // given
-        final User USER = new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
+        final User USER = getTestUser();
 
         when(userRepository.findByEmail(EMAIL)).thenReturn(List.of(USER));
         when(articleRepository.findById(ARTICLE_ID)).thenReturn(Optional.of(ARTICLE));
@@ -85,13 +95,12 @@ class CommentServiceTest {
     @Test
     public void writeFailByWrongPassword() {
         // given
-        final String PASSWORD1 = "testPassword1", PASSWORD2 = "testPassword2";
-        final User USER = new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD1));
+        final User USER = getTestUser();
 
         when(userRepository.findByEmail(EMAIL)).thenReturn(List.of(USER));
 
         // when
-        assertThrows(UserAuthenticationException.class, () -> commentService.write(ARTICLE_ID, new CommentWriteRequest(EMAIL, PASSWORD2, COMMENT_CONTENT)));
+        assertThrows(UserAuthenticationException.class, () -> commentService.write(ARTICLE_ID, new CommentWriteRequest(EMAIL, WRONG_PASSWORD, COMMENT_CONTENT)));
 
         // then
     }
@@ -99,20 +108,19 @@ class CommentServiceTest {
     @Test
     public void editSuccess() {
         // given
-        final String COMMENT1_CONTENT = "testComment1Content", COMMENT2_CONTENT = "testComment2Content";
-        final User USER = new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
+        final User USER = getTestUser();
 
-        Comment comment = new Comment(COMMENT_ID, COMMENT1_CONTENT, ARTICLE, USER);
+        Comment comment = new Comment(COMMENT_ID, COMMENT_CONTENT, ARTICLE, USER);
 
         when(userRepository.findByEmail(EMAIL)).thenReturn(List.of(USER));
         when(commentRepository.findById(COMMENT_ID)).thenReturn(Optional.of(comment));
 
         // when
-        commentService.edit(COMMENT_ID, new CommentEditRequest(EMAIL, PASSWORD, COMMENT2_CONTENT));
+        commentService.edit(COMMENT_ID, new CommentEditRequest(EMAIL, PASSWORD, NEW_COMMENT_CONTENT));
 
         // then
         assertThat(comment.getId()).isEqualTo(COMMENT_ID);
-        assertThat(comment.getContent()).isEqualTo(COMMENT2_CONTENT);
+        assertThat(comment.getContent()).isEqualTo(NEW_COMMENT_CONTENT);
         assertThat(comment.getArticle()).isEqualTo(ARTICLE);
         assertThat(comment.getUser()).isEqualTo(USER);
     }
@@ -131,13 +139,12 @@ class CommentServiceTest {
     @Test
     public void editFailByWrongPassword() {
         // given
-        final String PASSWORD1 = "testPassword1", PASSWORD2 = "testPassword2";
-        final User USER = new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD1));
+        final User USER = getTestUser();
 
         when(userRepository.findByEmail(EMAIL)).thenReturn(List.of(USER));
 
         // when
-        assertThrows(UserAuthenticationException.class, () -> commentService.edit(COMMENT_ID, new CommentEditRequest(EMAIL, PASSWORD2, COMMENT_CONTENT)));
+        assertThrows(UserAuthenticationException.class, () -> commentService.edit(COMMENT_ID, new CommentEditRequest(EMAIL, WRONG_PASSWORD, COMMENT_CONTENT)));
 
         // then
     }
@@ -145,8 +152,7 @@ class CommentServiceTest {
     @Test
     public void editFailByWrongAccount() {
         // given
-        final String OTHER_EMAIL = "other@test.com";
-        final User OTHER_USER = new User(USER_ID + 1, OTHER_EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
+        final User OTHER_USER = getOtherUser();
 
         when(userRepository.findByEmail(OTHER_EMAIL)).thenReturn(List.of(OTHER_USER));
         when(commentRepository.findById(COMMENT_ID)).thenReturn(Optional.of(COMMENT));
@@ -160,7 +166,7 @@ class CommentServiceTest {
     @Test
     public void deleteSuccess() {
         // given
-        final User USER = new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
+        final User USER = getTestUser();
 
         when(userRepository.findByEmail(EMAIL)).thenReturn(List.of(USER));
         when(commentRepository.findById(COMMENT_ID)).thenReturn(Optional.of(COMMENT));
@@ -189,13 +195,12 @@ class CommentServiceTest {
     @Test
     public void deleteFailByWrongPassword() {
         // given
-        final String PASSWORD1 = "testPassword1", PASSWORD2 = "testPassword2";
-        final User USER = new User(USER_ID, EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD1));
+        final User USER = getTestUser();
 
         when(userRepository.findByEmail(EMAIL)).thenReturn(List.of(USER));
 
         // when
-        assertThrows(UserAuthenticationException.class, () -> commentService.delete(COMMENT_ID, new CommentDeleteRequest(EMAIL, PASSWORD2)));
+        assertThrows(UserAuthenticationException.class, () -> commentService.delete(COMMENT_ID, new CommentDeleteRequest(EMAIL, WRONG_PASSWORD)));
 
         // then
     }
@@ -203,8 +208,7 @@ class CommentServiceTest {
     @Test
     public void deleteFailByWrongAccount() {
         // given
-        final String OTHER_EMAIL = "other@test.com";
-        final User OTHER_USER = new User(USER_ID + 1, OTHER_EMAIL, USERNAME, bCryptPasswordEncoder.encode(PASSWORD));
+        final User OTHER_USER = getOtherUser();
 
         when(userRepository.findByEmail(OTHER_EMAIL)).thenReturn(List.of(OTHER_USER));
         when(commentRepository.findById(COMMENT_ID)).thenReturn(Optional.of(COMMENT));
