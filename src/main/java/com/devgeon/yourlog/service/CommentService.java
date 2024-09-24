@@ -45,8 +45,11 @@ public class CommentService {
 
     public CommentDto edit(Long commentId, CommentEditRequest editRequest) {
 
-        getUserOrThrow(editRequest.getEmail(), editRequest.getPassword());
+        User user = getUserOrThrow(editRequest.getEmail(), editRequest.getPassword());
         Comment comment = commentRepository.findById(commentId).orElseThrow(CommentNotFoundException::new);
+        if (!user.getId().equals(comment.getUser().getId())) {
+            throw new UserAuthenticationException();
+        }
 
         comment.update(editRequest.getContent());
 
@@ -55,7 +58,11 @@ public class CommentService {
 
     public CommentDeleteResponse delete(Long commentId, CommentDeleteRequest deleteRequest) {
 
-        getUserOrThrow(deleteRequest.getEmail(), deleteRequest.getPassword());
+        User user = getUserOrThrow(deleteRequest.getEmail(), deleteRequest.getPassword());
+        Comment comment = commentRepository.findById(commentId).orElseThrow(CommentNotFoundException::new);
+        if (!user.getId().equals(comment.getUser().getId())) {
+            throw new UserAuthenticationException();
+        }
 
         commentRepository.deleteById(commentId);
 

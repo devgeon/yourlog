@@ -42,8 +42,11 @@ public class ArticleService {
 
     public ArticleDto edit(Long id, ArticleEditRequest editRequest) {
 
-        getUserOrThrow(editRequest.getEmail(), editRequest.getPassword());
+        User user = getUserOrThrow(editRequest.getEmail(), editRequest.getPassword());
         Article article = articleRepository.findById(id).orElseThrow(ArticleNotFoundException::new);
+        if (!user.getId().equals(article.getUser().getId())) {
+            throw new UserAuthenticationException();
+        }
 
         article.update(editRequest.getTitle(), editRequest.getContent());
 
@@ -52,8 +55,11 @@ public class ArticleService {
 
     public ArticleDeleteResponse delete(Long id, ArticleDeleteRequest deleteRequest) {
 
-        getUserOrThrow(deleteRequest.getEmail(), deleteRequest.getPassword());
+        User user = getUserOrThrow(deleteRequest.getEmail(), deleteRequest.getPassword());
         Article article = articleRepository.findById(id).orElseThrow(ArticleNotFoundException::new);
+        if (!user.getId().equals(article.getUser().getId())) {
+            throw new UserAuthenticationException();
+        }
 
         commentRepository.deleteByArticle(article);
         articleRepository.deleteById(id);
